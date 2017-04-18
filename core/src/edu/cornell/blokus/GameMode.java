@@ -148,6 +148,7 @@ public class GameMode implements ModeController {
 	public void update() {
 		// Read the keyboard for each controller.
 		inputController.readInput();
+		// testing
 
 	}
 
