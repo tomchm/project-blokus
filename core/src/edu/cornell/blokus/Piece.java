@@ -7,11 +7,13 @@ import com.badlogic.gdx.utils.Array;
  */
 public class Piece {
     public int rotations;
+    public Pair origin;
     public Pair[][] solids, edges, corners;
 
     public Piece(Array<Array<String>> data, Pair origin){
         int ox = origin.x;
         int oy = origin.y;
+        this.origin = new Pair(ox, oy);
 
         rotations = data.size;
 
@@ -51,6 +53,34 @@ public class Piece {
             pairs[i] = a.get(i);
         }
         return pairs;
+    }
+
+    public Pair getDimensions(int rotation) {
+        int xmax = 0;
+        int ymax = 0;
+        int xmin = 1000;
+        int ymin = 1000;
+        for (int i = 0; i < edges[rotation].length; i ++) {
+            xmax = Math.max(xmax, edges[rotation][i].x);
+            ymax = Math.max(ymax, edges[rotation][i].y);
+            xmin = Math.min(xmin, edges[rotation][i].x);
+            ymin = Math.min(ymin, edges[rotation][i].y);
+        }
+        return new Pair(xmax - xmin, ymax - ymin);
+    }
+
+    public Pair getOrigin() {
+        return origin;
+    }
+
+    public Pair getMin(int rotation) {
+        int xmin = 1000;
+        int ymin = 1000;
+        for (int i = 0; i < edges[rotation].length; i ++) {
+            xmin = Math.min(xmin, edges[rotation][i].x);
+            ymin = Math.min(ymin, edges[rotation][i].y);
+        }
+        return new Pair(xmin, ymin);
     }
 
 }

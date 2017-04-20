@@ -11,6 +11,7 @@
  */
 package edu.cornell.blokus;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.*;
 
 import edu.cornell.blokus.util.FilmStrip;
@@ -32,21 +33,34 @@ public class GameMode implements ModeController {
 	// GRAPHICS AND SOUND RESOURCES
 	// Pathnames to texture  and sound assets
 	/** The background image for the battle */
-	private static final String BACKGROUND_FILE = "images/ice.png";
-	
+	private static final String BACKGROUND_FILE = "images/backdrop.png";
+	private static final String PLAYERAREA_FILE = "images/playerArea.png";
+
 	// Asset loading is handled statically, so these are static variables
 	/** The background image for the battle */
 	private static Texture background; 
 	private static Texture redTile, blueTile, greenTile, yellowTile, blankTile;
+	private static Texture playerArea;
+
 
 	public enum Tile {
 		BLUE, RED, GREEN, YELLOW, BLANK
 	}
 
+	public static final int H = Gdx.graphics.getHeight();
+	public static final int W = Gdx.graphics.getWidth();
+	public static final int GRID_HEIGHT = 20;
+	public static final int GRID_WIDTH = 20;
+	public static final int TILE_SIZE = 24;
 	public static Tile[][] grid;
-	public static final int GRID_X = 128, GRID_Y = 32;
+	public static final int GRID_X = (W - GRID_WIDTH * TILE_SIZE) / 2, GRID_Y = (H - GRID_HEIGHT * TILE_SIZE)/2;
 
-    
+	public static final int P_XMARGIN = 30;
+	public static final int P_YMARGIN = 30;
+
+	public PlayerArea p1_area;
+	public PlayerArea p2_area;
+
 	/** 
 	 * Preloads the texture and sound information for the game.
 	 * 
@@ -61,11 +75,13 @@ public class GameMode implements ModeController {
 	 */
 	public static void PreLoadContent(AssetManager manager) {
 		manager.load(BACKGROUND_FILE,Texture.class);
+		manager.load(PLAYERAREA_FILE,Texture.class);
 		manager.load("images/redtile.png",Texture.class);
 		manager.load("images/bluetile.png",Texture.class);
 		manager.load("images/greentile.png",Texture.class);
 		manager.load("images/yellowtile.png",Texture.class);
 		manager.load("images/blanktile.png",Texture.class);
+
 	}
 
 	/** 
@@ -83,6 +99,7 @@ public class GameMode implements ModeController {
 	 */
 	public static void LoadContent(AssetManager manager) {
 		background    = manager.get(BACKGROUND_FILE, Texture.class);
+		playerArea = manager.get(PLAYERAREA_FILE, Texture.class);
 		redTile = manager.get("images/redtile.png", Texture.class);
 		blueTile = manager.get("images/bluetile.png", Texture.class);
 		greenTile = manager.get("images/greentile.png", Texture.class);
@@ -100,6 +117,7 @@ public class GameMode implements ModeController {
 	 */
 	public static void UnloadContent(AssetManager manager) {
 		manager.unload(BACKGROUND_FILE);
+		manager.unload(PLAYERAREA_FILE);
 		manager.unload("images/redtile.png");
 		manager.unload("images/bluetile.png");
 		manager.unload("images/greentile.png");
@@ -124,17 +142,24 @@ public class GameMode implements ModeController {
 	 */
 	public GameMode(float width, float height) {
 		inputController  = new InputController(1);
-		grid = new Tile[20][20];
-		for(int i=0; i<20; i++){
-			for(int j=0; j<20; j++){
+		grid = new Tile[GRID_HEIGHT][GRID_WIDTH];
+		for(int i=0; i<GRID_HEIGHT; i++){
+			for(int j=0; j<GRID_WIDTH; j++){
 				grid[i][j] = Tile.BLANK;
 			}
 		}
-
-
-
+		initializePlayerArea();
 	}
 
+
+	public void initializePlayerArea(){
+		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE);
+		p1_area.setTexture(playerArea);
+
+		p2_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE);
+		p2_area.setTexture(playerArea);
+
+	}
 	/** 
 	 * Read user input, calculate physics, and update the models.
 	 *
@@ -162,44 +187,59 @@ public class GameMode implements ModeController {
 	 */
 	@Override
 	public void draw(GameCanvas canvas) {
-		canvas.drawOverlay(background, true);
-		for(int i=0; i<20; i++){
-			for(int j=0; j<20; j++){
+		canvas.drawOverlay(background,true);
+		p1_area.draw(canvas);
+		p2_area.draw(canvas);
+
+		for(int i=0; i<GRID_HEIGHT; i++){
+			for(int j=0; j<GRID_WIDTH; j++){
 				switch(grid[i][j]){
 					case BLANK:
-						canvas.draw(blankTile, Color.WHITE, GRID_X+j*32, GRID_Y+i*32);
+						canvas.draw(blankTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case BLUE:
-						canvas.draw(blueTile, Color.WHITE, GRID_X+j*32, GRID_Y+i*32);
+						canvas.draw(blueTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case GREEN:
-						canvas.draw(greenTile, Color.WHITE, GRID_X+j*32, GRID_Y+i*32);
+						canvas.draw(greenTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case RED:
-						canvas.draw(redTile, Color.WHITE, GRID_X+j*32, GRID_Y+i*32);
+						canvas.draw(redTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case YELLOW:
-						canvas.draw(yellowTile, Color.WHITE, GRID_X+j*32, GRID_Y+i*32);
+						canvas.draw(yellowTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 				}
 			}
 		}
 
-		Piece[] plist = Pieces.getInstance().plist;
-
-		for(int i=1; i<2; i++){
-			int ii = i+19;
-			for(int r=0; r<plist[ii].rotations; r++){
-				for(int t=0; t<plist[ii].solids[r].length; t++){
-					canvas.draw(blueTile, Color.WHITE, GRID_X+r*256+plist[ii].solids[r][t].x*32, GRID_Y+i*256+plist[ii].solids[r][t].y*32);
-				}
-				for(int t=0; t<plist[ii].corners[r].length; t++){
-					canvas.draw(greenTile, Color.WHITE, GRID_X+r*256+plist[ii].corners[r][t].x*32, GRID_Y+i*256+plist[ii].corners[r][t].y*32);
-				}
-				for(int t=0; t<plist[ii].edges[r].length; t++){
-					canvas.draw(redTile, Color.WHITE, GRID_X+r*256+plist[ii].edges[r][t].x*32, GRID_Y+i*256+plist[ii].edges[r][t].y*32);
-				}
+		for (GamePiece gp: p1_area.gamePieces) {
+			if (gp != null){
+				drawGamePiece(canvas,gp,true);
 			}
+		}
+		for (GamePiece gp: p2_area.gamePieces) {
+			if (gp != null){
+				drawGamePiece(canvas,gp,true);
+			}
+		}
+	}
+
+	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean justBlue) {
+		for(int t=0; t<gp.template.solids[gp.rotation].length; t++){
+			Pair tile = gp.template.solids[gp.rotation][t];
+			canvas.draw(blueTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+		}
+
+		if (justBlue) return;
+
+		for(int t=0; t<gp.template.corners[gp.rotation].length; t++){
+			Pair tile = gp.template.corners[gp.rotation][t];
+			canvas.draw(greenTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+		}
+		for(int t=0; t<gp.template.edges[gp.rotation].length; t++){
+			Pair tile = gp.template.edges[gp.rotation][t];
+			canvas.draw(redTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 		}
 	}
 

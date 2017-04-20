@@ -70,7 +70,7 @@ public class LoadingMode implements ModeController, InputProcessor, ControllerLi
 	/** The play button for when loading is done */
 	private static String TEXTURE_PLAY_BUTTON = "images/play.png";
 	/** The background screen for loading */
-	private static String TEXTURE_LOADING_SCREEN = "images/loading.png";	
+	private static String TEXTURE_LOADING_SCREEN = "images/loading2.png";
 	/** The texture atlas for the progress bar */
 	private static String TEXTURE_PROGRESS_BAR = "images/progressbar.png";
 
@@ -84,7 +84,7 @@ public class LoadingMode implements ModeController, InputProcessor, ControllerLi
 	/** Ratio from the bottom for the height */
 	private static float BAR_HEIGHT_RATIO = 0.18f;	
 	/** Additional scaling factor for play button */
-	private static float PLAY_BUTTON_RATIO = 0.75f;
+	private static float PLAY_BUTTON_RATIO = 1f;
 	
 	// Texture atlas dimensions
 	/** Height of the progress bar */
