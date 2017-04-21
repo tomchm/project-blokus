@@ -55,12 +55,21 @@ public class PlayerArea {
 
     public GamePiece getPieceAt(float x1, float y1) {
         for (GamePiece gp: gamePieces) {
-            if (gp.isContained(x1, y1, tileSize)) {
+            if (gp != null && gp.isContained(x1, y1, tileSize)) {
                 return gp;
             }
         }
         return null;
     }
+
+    public void removePiece(GamePiece gp) {
+        for (int i = 0; i < gamePieces.length; i++) {
+            if (gamePieces[i] == gp) {
+                gamePieces[i] = null;
+            }
+        }
+    }
+
 
     public void setTexture(Texture tex) {
         texture = tex;

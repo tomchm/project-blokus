@@ -185,6 +185,8 @@ public class GameMode implements ModeController {
 		if (inputController.clicked) {
             if (inGrid(pos.x, pos.y) && mousePiece != null) {
                 putPieceOnGrid(mousePiece);
+				p1_area.removePiece(selected);
+				allGamePieces.removeValue(selected, true);
             }
             selected = p1_area.getPieceAt(pos.x,  pos.y);
             if (selected != null ) {
