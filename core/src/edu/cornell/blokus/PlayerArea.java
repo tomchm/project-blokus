@@ -38,7 +38,7 @@ public class PlayerArea {
             Piece piece = Pieces.getInstance().plist[i];
             gamePieces[i] = new GamePiece(tempx + xoffset - (piece.getMin(0).x) * tileSize, tempy + yoffset - (piece.getMin(0).y) * tileSize, 0, piece);
 
-            xoffset = xoffset + piece.getDimensions(0).x  * tileSize;
+            xoffset = xoffset + piece.getDimensions(0).x  * tileSize + tileSize/4;
             yoffsetmax = Math.max(yoffsetmax, yoffset + piece.getDimensions(0).y * tileSize);
 
             Piece nextPiece = null;
@@ -46,13 +46,21 @@ public class PlayerArea {
                 nextPiece = Pieces.getInstance().plist[i+1];
             }
 
-            if (nextPiece != null && nextPiece.getDimensions(0).x * tileSize + xoffset > width) {
+            if (nextPiece != null && (nextPiece.getDimensions(0).x + 1) * tileSize + xoffset > width) {
                 xoffset = 0;
-                yoffset = yoffsetmax;
+                yoffset = yoffsetmax + tileSize/4;
             }
         }
     }
 
+    public GamePiece getPieceAt(float x1, float y1) {
+        for (GamePiece gp: gamePieces) {
+            if (gp.isContained(x1, y1, tileSize)) {
+                return gp;
+            }
+        }
+        return null;
+    }
 
     public void setTexture(Texture tex) {
         texture = tex;
@@ -60,5 +68,10 @@ public class PlayerArea {
 
     public void draw(GameCanvas canvas) {
         canvas.draw(texture, Color.WHITE, texture.getWidth()/2, texture.getHeight()/2, x,y, 0, ((float)width)/texture.getWidth(), ((float)height)/texture.getHeight());
+    }
+
+    public void drawFadeOut(GameCanvas canvas) {
+        canvas.draw(texture, new Color(1,1,1,0.5f), texture.getWidth()/2, texture.getHeight()/2, x,y, 0, ((float)width)/texture.getWidth(), ((float)height)/texture.getHeight());
+
     }
 }

@@ -12,14 +12,10 @@
 package edu.cornell.blokus;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.math.*;
-
-import edu.cornell.blokus.util.FilmStrip;
-
-import com.badlogic.gdx.audio.*;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.utils.Array;
+
 
 /**
  * The primary controller class for the game.
@@ -51,15 +47,20 @@ public class GameMode implements ModeController {
 	public static final int W = Gdx.graphics.getWidth();
 	public static final int GRID_HEIGHT = 20;
 	public static final int GRID_WIDTH = 20;
-	public static final int TILE_SIZE = 24;
+	public static final int TILE_SIZE = 23;
 	public static Tile[][] grid;
 	public static final int GRID_X = (W - GRID_WIDTH * TILE_SIZE) / 2, GRID_Y = (H - GRID_HEIGHT * TILE_SIZE)/2;
 
-	public static final int P_XMARGIN = 30;
-	public static final int P_YMARGIN = 30;
+	public static final int P_XMARGIN = 24;
+	public static final int P_YMARGIN = 24;
 
 	public PlayerArea p1_area;
 	public PlayerArea p2_area;
+
+	public GamePiece selected = null;
+	public GamePiece mousePiece = null;
+
+	protected Array<GamePiece> allGamePieces = new Array <GamePiece>();
 
 	/** 
 	 * Preloads the texture and sound information for the game.
@@ -141,7 +142,8 @@ public class GameMode implements ModeController {
 	 * @param height The height of the game window
 	 */
 	public GameMode(float width, float height) {
-		inputController  = new InputController(1);
+		inputController  = new InputController();
+		Gdx.input.setInputProcessor(inputController);
 		grid = new Tile[GRID_HEIGHT][GRID_WIDTH];
 		for(int i=0; i<GRID_HEIGHT; i++){
 			for(int j=0; j<GRID_WIDTH; j++){
@@ -155,9 +157,15 @@ public class GameMode implements ModeController {
 	public void initializePlayerArea(){
 		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE);
 		p1_area.setTexture(playerArea);
+		for (int i = 0; i < p1_area.gamePieces.length; i++) {
+		    allGamePieces.add(p1_area.gamePieces[i]);
+        }
 
 		p2_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE);
 		p2_area.setTexture(playerArea);
+        for (int i = 0; i < p2_area.gamePieces.length; i++) {
+            allGamePieces.add(p2_area.gamePieces[i]);
+        }
 
 	}
 	/** 
@@ -172,10 +180,43 @@ public class GameMode implements ModeController {
 	@Override
 	public void update() {
 		// Read the keyboard for each controller.
-		inputController.readInput();
+        Pair pos = new Pair(inputController.pos.x , H - inputController.pos.y);
+
+		if (inputController.clicked) {
+            if (inGrid(pos.x, pos.y) && mousePiece != null) {
+                putPieceOnGrid(mousePiece);
+            }
+            selected = p1_area.getPieceAt(pos.x,  pos.y);
+            if (selected != null ) {
+                mousePiece = new GamePiece(pos.x, pos.y, 0,selected.template);
+            }
+            else {
+                mousePiece = null;
+            }
+        }
+
+        if (mousePiece != null) {
+		    mousePiece.setXY(pos.x, pos.y);
+        }
 		// testing
 
 	}
+
+	public boolean inGrid(float x, float y) {
+        boolean tempA = x > GRID_X && x < GRID_X + GRID_WIDTH * TILE_SIZE;
+        boolean tempB = y > GRID_Y && y < GRID_Y + GRID_HEIGHT * TILE_SIZE;
+        return tempA  && tempB;
+    }
+
+    public void putPieceOnGrid(GamePiece gp) {
+        for (int i = 0; i < GRID_HEIGHT; i ++) {
+            for (int j = 0; j < GRID_WIDTH; j++) {
+                if (gp.isContained(i * TILE_SIZE + GRID_X + TILE_SIZE/2, j * TILE_SIZE + GRID_Y + TILE_SIZE/2, TILE_SIZE)) {
+                    grid[j][i] = Tile.BLUE;
+                }
+            }
+        }
+    }
 
 	/**
 	 * Draw the game on the provided GameCanvas
@@ -213,19 +254,19 @@ public class GameMode implements ModeController {
 			}
 		}
 
-		for (GamePiece gp: p1_area.gamePieces) {
+		for (GamePiece gp: allGamePieces) {
 			if (gp != null){
 				drawGamePiece(canvas,gp,true);
 			}
 		}
-		for (GamePiece gp: p2_area.gamePieces) {
-			if (gp != null){
-				drawGamePiece(canvas,gp,true);
-			}
-		}
+		if (selected != null) {
+            drawGamePiece(canvas, mousePiece, false);
+        }
 	}
 
 	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean justBlue) {
+	    if (gp == null) return;
+
 		for(int t=0; t<gp.template.solids[gp.rotation].length; t++){
 			Pair tile = gp.template.solids[gp.rotation][t];
 			canvas.draw(blueTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
@@ -235,11 +276,11 @@ public class GameMode implements ModeController {
 
 		for(int t=0; t<gp.template.corners[gp.rotation].length; t++){
 			Pair tile = gp.template.corners[gp.rotation][t];
-			canvas.draw(greenTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			canvas.draw(greenTile, new Color(1,1,1,0.6f), 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 		}
 		for(int t=0; t<gp.template.edges[gp.rotation].length; t++){
 			Pair tile = gp.template.edges[gp.rotation][t];
-			canvas.draw(redTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			canvas.draw(redTile, new Color(1,1,1,0.6f), 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 		}
 	}
 
