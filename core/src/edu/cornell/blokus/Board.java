@@ -1,11 +1,13 @@
 package edu.cornell.blokus;
 
+import com.badlogic.gdx.Game;
+
 /**
  * Created by vanyaivan on 5/13/2017.
  */
 public class Board {
     public GameMode.Tile[][] grid;
-    public int[][] statusGrid;
+    public int[][][] statusGrids;
     public int width, height;
     public int gx, gy;
     public int tileSize;
@@ -17,15 +19,25 @@ public class Board {
         this.height = height;
         this.tileSize = tileSize;
         grid = new GameMode.Tile[height][width];
-        statusGrid = new int[height][width];
+        statusGrids = new int[4][height][width];
 
 
         for(int i=0; i<height; i++){
             for(int j=0; j<width; j++){
                 grid[i][j] = GameMode.Tile.BLANK;
-                statusGrid[i][j] = -1;
+                for (int k = 0; k < 4; k ++){
+                    statusGrids[k][i][j] = -1;
+                }
             }
         }
+    }
+
+    public int tileToID(GameMode.Tile tile) {
+        if (tile == GameMode.Tile.BLUE) return 0;
+        else if (tile == GameMode.Tile.GREEN) return 1;
+        else if (tile == GameMode.Tile.RED) return 2;
+        else if (tile == GameMode.Tile.YELLOW) return 3;
+        else return -1;
     }
 
     public boolean inGrid(float x, float y) {
@@ -36,13 +48,18 @@ public class Board {
 
 
     public void putPieceOnGrid(GamePiece gp) {
+        int[][] statusGrid = statusGrids[tileToID(gp.tile)];
         for (int i = 0; i < height; i ++) {
             for (int j = 0; j < width; j++) {
                 Pair coords = boardToScreen(j, i);
                 int setTile = gp.isContained(coords.x, coords.y , tileSize);
-                if (setTile != -1 && (statusGrid[i][j] == 2 || statusGrid[i][j] == -1 )){
+                if (setTile != -1 && (statusGrid[i][j] == 2 || statusGrid[i][j] == -1)){
                     if (setTile == 0) {
                         grid[i][j] = gp.tile;
+                        statusGrids[0][i][j] = setTile;
+                        statusGrids[1][i][j] = setTile;
+                        statusGrids[2][i][j] = setTile;
+                        statusGrids[3][i][j] = setTile;
                     }
                     statusGrid[i][j] = setTile;
                 }
@@ -68,6 +85,7 @@ public class Board {
     public boolean checkValidPlacement(Piece p, int rot, int x, int y, GameMode.Tile tile) {
         int greenCount = 0;
         int blueCount = 0;
+        int[][] statusGrid = statusGrids[tileToID(tile)];
         for (int i = 0; i < height; i ++) {
             for (int j = 0; j < width; j++) {
                 int setTile = p.isContained(rot, j, i, x, y);
