@@ -14,13 +14,15 @@ public class PlayerArea {
     public int tileSize;
     public Texture texture;
     public GamePiece[] gamePieces;
+    public GameMode.Tile playerColor;
 
-    public PlayerArea(int x, int y, int width, int height, int tileSize) {
+    public PlayerArea(int x, int y, int width, int height, int tileSize, GameMode.Tile playerColor) {
        this.x = x;
        this.y = y;
        this.width = width;
        this.height = height;
        this.tileSize = tileSize;
+       this.playerColor = playerColor;
        initializeGamePieces();
     }
 

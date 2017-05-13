@@ -15,7 +15,7 @@ public class InputController implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-		return false;
+		return Gdx.input.isKeyJustPressed(keycode);
 	}
 
 	@Override

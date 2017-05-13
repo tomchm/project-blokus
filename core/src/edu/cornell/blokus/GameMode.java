@@ -12,6 +12,7 @@
 package edu.cornell.blokus;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.utils.Array;
@@ -151,17 +152,18 @@ public class GameMode implements ModeController {
 			}
 		}
 		initializePlayerArea();
+		Testing.init(p2_area, grid);
 	}
 
 
 	public void initializePlayerArea(){
-		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE);
+		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE, Tile.BLUE);
 		p1_area.setTexture(playerArea);
 		for (int i = 0; i < p1_area.gamePieces.length; i++) {
 		    allGamePieces.add(p1_area.gamePieces[i]);
         }
 
-		p2_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE);
+		p2_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE, Tile.RED);
 		p2_area.setTexture(playerArea);
         for (int i = 0; i < p2_area.gamePieces.length; i++) {
             allGamePieces.add(p2_area.gamePieces[i]);
@@ -201,6 +203,12 @@ public class GameMode implements ModeController {
 		    mousePiece.setXY(pos.x, pos.y);
         }
 		// testing
+		if(inputController.keyDown(Input.Keys.A)){
+			Testing.getNextPiece();
+		}
+		if(inputController.keyDown(Input.Keys.S)){
+			Testing.possibleMoves = Brain.getAllMoves(p1_area, grid);
+		}
 
 	}
 
@@ -264,6 +272,23 @@ public class GameMode implements ModeController {
 		if (selected != null) {
             drawGamePiece(canvas, mousePiece, false);
         }
+
+        if(Testing.gamePiece != null){
+			for(int i=0; i<Testing.gamePiece.template.solids[Testing.gamePiece.rotation].length; i++){
+				Pair pair = Testing.gamePiece.template.solids[Testing.gamePiece.rotation][i];
+				canvas.draw(blueTile, Color.WHITE,0,0, GRID_X+(pair.x+Testing.gamePiece.x)*TILE_SIZE, GRID_Y+(pair.y+Testing.gamePiece.y)*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			}
+			for(int t=0; t<Testing.gamePiece.template.corners[Testing.gamePiece.rotation].length; t++){
+				Pair pair = Testing.gamePiece.template.corners[Testing.gamePiece.rotation][t];
+				canvas.draw(greenTile, new Color(1,1,1,0.6f), 0,0,GRID_X+(pair.x+Testing.gamePiece.x)*TILE_SIZE, GRID_Y+(pair.y+Testing.gamePiece.y)*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			}
+			for(int t=0; t<Testing.gamePiece.template.edges[Testing.gamePiece.rotation].length; t++){
+				Pair pair = Testing.gamePiece.template.edges[Testing.gamePiece.rotation][t];
+				canvas.draw(redTile, new Color(1,1,1,0.6f), 0,0,GRID_X+(pair.x+Testing.gamePiece.x)*TILE_SIZE, GRID_Y+(pair.y+Testing.gamePiece.y)*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			}
+		}
+
+
 	}
 
 	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean justBlue) {
