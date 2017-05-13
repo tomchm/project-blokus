@@ -716,6 +716,22 @@ public class GameCanvas {
     }
 
 	/**
+	 * Draws text centered on the screen.
+	 *
+	 * @param text The string to draw
+	 * @param offset The y-value offset from the center of the screen.
+	 */
+	public void drawTextCentered(String text, float offset) {
+		BitmapFont font = new BitmapFont();
+		font.getData().setScale(2,2);
+
+		GlyphLayout layout = new GlyphLayout(font,text);
+		float x = (getWidth()  - layout.width) / 2.0f;
+		float y = (getHeight() + layout.height) / 2.0f;
+		font.draw(spriteBatch, layout, x, y+offset);
+	}
+
+	/**
 	 * Enumeration of supported BlendStates.
 	 *
 	 * For reasons of convenience, we do not allow user-defined blend functions.

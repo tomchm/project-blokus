@@ -2,6 +2,7 @@ package edu.cornell.blokus;
 
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -11,15 +12,26 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class InputController implements InputProcessor {
 	public boolean clicked = false;
+	public boolean rotated = false;
+	public boolean giveUp = false;
 	public Pair pos = new Pair(0,0);
 
 	@Override
 	public boolean keyDown(int keycode) {
+
+		if (keycode == Keys.SPACE) {
+			rotated = true;
+		}
+		if (keycode == Keys.S) {
+			giveUp = true;
+		}
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
+		rotated = false;
+		giveUp = false;
 		return false;
 	}
 

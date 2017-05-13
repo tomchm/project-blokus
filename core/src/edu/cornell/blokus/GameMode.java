@@ -56,10 +56,22 @@ public class GameMode implements ModeController {
 	public Board board;
 
 	public PlayerArea p1_area;
-	public PlayerArea p2_area;
+	public PlayerArea ai1_area;
+	public PlayerArea ai2_area;
+	public PlayerArea ai3_area;
+
+	public AIController[] aiControllers;
+	public static final int NUM_AIS = 3;
 
 	public GamePiece selected = null;
 	public GamePiece mousePiece = null;
+
+	public int turn = 0;
+	public boolean hasRotated = false;
+
+	public int endCondition = 0;
+	public boolean end = false;
+	public int[] scores = new int[NUM_AIS+1];
 
 	protected Array<GamePiece> allGamePieces = new Array <GamePiece>();
 
@@ -169,22 +181,43 @@ public class GameMode implements ModeController {
 		board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
 
 		initializePlayerArea();
+		initializeAIControllers();
 	}
 
 
 	public void initializePlayerArea(){
-		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE, Tile.BLUE);
+		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, 3*H/4,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, (H - 2*P_YMARGIN)/2 , TILE_SIZE, Tile.BLUE);
 		p1_area.setTexture(playerArea);
 		for (int i = 0; i < p1_area.gamePieces.length; i++) {
 		    allGamePieces.add(p1_area.gamePieces[i]);
         }
 
-		p2_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , H/2,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, H - 2*P_YMARGIN , TILE_SIZE, Tile.RED);
-		p2_area.setTexture(playerArea);
-        for (int i = 0; i < p2_area.gamePieces.length; i++) {
-            allGamePieces.add(p2_area.gamePieces[i]);
+		ai1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, H/4,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, (H - 2*P_YMARGIN)/2 , TILE_SIZE, Tile.GREEN);
+		ai1_area.setTexture(playerArea);
+		for (int i = 0; i < ai1_area.gamePieces.length; i++) {
+			allGamePieces.add(ai1_area.gamePieces[i]);
+		}
+
+		ai2_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , 3*H/4,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, (H - 2*P_YMARGIN)/2 , TILE_SIZE, Tile.RED);
+		ai2_area.setTexture(playerArea);
+        for (int i = 0; i < ai2_area.gamePieces.length; i++) {
+            allGamePieces.add(ai2_area.gamePieces[i]);
         }
+
+		ai3_area = new PlayerArea( W - (W - GRID_WIDTH * TILE_SIZE) / 4 , H/4,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, (H - 2*P_YMARGIN)/2 , TILE_SIZE, Tile.YELLOW);
+		ai3_area.setTexture(playerArea);
+		for (int i = 0; i < ai3_area.gamePieces.length; i++) {
+			allGamePieces.add(ai3_area.gamePieces[i]);
+		}
 	}
+
+	public void initializeAIControllers() {
+		aiControllers = new AIController[3];
+		aiControllers[0] = new AIController(ai1_area, board);
+		aiControllers[1] = new AIController(ai2_area, board);
+		aiControllers[2] = new AIController(ai3_area, board);
+	}
+
 
 	/** 
 	 * Read user input, calculate physics, and update the models.
@@ -200,30 +233,103 @@ public class GameMode implements ModeController {
 		// Read the keyboard for each controller.
         Pair pos = new Pair(inputController.pos.x , H - inputController.pos.y);
 
+        if (turn % (NUM_AIS + 1) == 0) {
+        	if (!canPlace(p1_area) || inputController.giveUp){
+        		turn++;
+        		endCondition ++;
+			}
+			else {
+				// process player input
+				if (inputController.clicked) {
+					if (board.inGrid(pos.x, pos.y) && mousePiece != null && board.checkValidPlacement(mousePiece)) {
+						board.putPieceOnGrid(mousePiece);
+						p1_area.removePiece(selected);
+						allGamePieces.removeValue(selected, true);
+						endCondition = 0;
+						turn++;
 
-        // process player input
-		if (inputController.clicked) {
-            if (board.inGrid(pos.x, pos.y) && mousePiece != null && board.checkValidPlacement(mousePiece)) {
-                board.putPieceOnGrid(mousePiece);
-				p1_area.removePiece(selected);
-				allGamePieces.removeValue(selected, true);
-            }
-            selected = p1_area.getPieceAt(pos.x,  pos.y);
-            if (selected != null ) {
-                mousePiece = new GamePiece(pos.x, pos.y, 0,selected.template, selected.tile);
-            }
-            else {
-                mousePiece = null;
-            }
-        }
+					}
+					selected = p1_area.getPieceAt(pos.x, pos.y);
+					if (selected != null) {
+						mousePiece = new GamePiece(pos.x, pos.y, 0, selected.template, selected.tile);
+					} else {
+						mousePiece = null;
+					}
+				}
 
-        if (mousePiece != null) {
-		    mousePiece.setXY(pos.x, pos.y);
-        }
+				if (mousePiece != null) {
+					if (inputController.rotated && !hasRotated) {
+						mousePiece.rotation = (mousePiece.rotation + 1) % mousePiece.template.rotations;
+						hasRotated = true;
+					}
+					if (!inputController.rotated) {
+						hasRotated = false;
+					}
+					mousePiece.setXY(pos.x, pos.y);
+				}
+			}
+		}
 
         // process ai input
+		else {
+			AIController ai = aiControllers[(turn % (NUM_AIS + 1)) - 1 ];
 
+			if(!canPlace(ai.pa)){
+				turn ++;
+				endCondition ++;
+			}
+			else {
+				GamePiece aiPiece = ai.selectPiece();
+				if (aiPiece != null) {
+					board.putPieceOnGrid(aiPiece);
+					ai.pa.removePiece(ai.selected);
+					allGamePieces.removeValue(ai.selected, true);
+				}
+				turn++;
+				endCondition = 0;
+			}
+		}
+
+		if (endCondition == NUM_AIS + 1){
+        	calculateScores();
+        	end = true;
+		}
 		// both inputs
+	}
+
+	public boolean canPlace(PlayerArea pa){
+		for(GamePiece gp: pa.gamePieces) {
+			if (gp == null) continue;
+			for (int i = 0; i < board.height; i ++) {
+				for (int j = 0; j < board.width; j++) {
+					for (int rot = 0; rot < gp.template.rotations; rot ++){
+						if (board.checkValidPlacement(gp.template, rot, j, i, gp.tile)){
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	public void calculateScores() {
+		scores[0] = countTiles(p1_area.tile) + ((p1_area.allRemoved()) ? 15 : 0);
+		scores[1] = countTiles(ai1_area.tile) + ((ai1_area.allRemoved()) ? 15 : 0);
+		scores[2] = countTiles(ai2_area.tile) + ((ai2_area.allRemoved()) ? 15 : 0);
+		scores[3] = countTiles(ai3_area.tile) + ((ai3_area.allRemoved()) ? 15 : 0);
+	}
+
+	public int countTiles(Tile tile) {
+		int count = 0;
+		for (int i = 0; i < board.height; i ++) {
+			for (int j = 0; j < board.width; j++) {
+				if (board.grid[i][j] == tile){
+					count++;
+				}
+			}
+		}
+		return count;
 	}
 
 	/**
@@ -238,7 +344,9 @@ public class GameMode implements ModeController {
 	public void draw(GameCanvas canvas) {
 		canvas.drawOverlay(background,true);
 		p1_area.draw(canvas);
-		p2_area.draw(canvas);
+		ai1_area.draw(canvas);
+		ai2_area.draw(canvas);
+		ai3_area.draw(canvas);
 
 		for(int i=0; i<GRID_HEIGHT; i++){
 			for(int j=0; j<GRID_WIDTH; j++){
@@ -270,6 +378,16 @@ public class GameMode implements ModeController {
 		if (selected != null) {
             drawGamePiece(canvas, mousePiece, false);
         }
+
+        if (end) {
+			canvas.drawOverlay(background,true);
+			canvas.drawTextCentered("SCORES", 100);
+			canvas.drawTextCentered("Player: " + String.valueOf(scores[0]), 50);
+			canvas.drawTextCentered("AI1: " + String.valueOf(scores[1]), 0);
+			canvas.drawTextCentered("AI2: " + String.valueOf(scores[2]), -50);
+			canvas.drawTextCentered("AI3: " + String.valueOf(scores[3]), -100);
+
+		}
 	}
 
 	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean highlight) {

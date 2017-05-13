@@ -4,8 +4,8 @@ package edu.cornell.blokus;
  * Created by vanyaivan on 5/13/2017.
  */
 public class Board {
-    public static GameMode.Tile[][] grid;
-    public static int[][] statusGrid;
+    public GameMode.Tile[][] grid;
+    public int[][] statusGrid;
     public int width, height;
     public int gx, gy;
     public int tileSize;
@@ -38,8 +38,9 @@ public class Board {
     public void putPieceOnGrid(GamePiece gp) {
         for (int i = 0; i < height; i ++) {
             for (int j = 0; j < width; j++) {
-                int setTile = gp.isContained(j * tileSize + gx + tileSize/2, i * tileSize + gy + tileSize/2, tileSize);
-                if (setTile != -1 && (grid[i][j] == GameMode.Tile.GREEN || grid[i][j] == GameMode.Tile.BLANK )){
+                Pair coords = boardToScreen(j, i);
+                int setTile = gp.isContained(coords.x, coords.y , tileSize);
+                if (setTile != -1 && (statusGrid[i][j] == 2 || statusGrid[i][j] == -1 )){
                     if (setTile == 0) {
                         grid[i][j] = gp.tile;
                     }
@@ -49,14 +50,27 @@ public class Board {
         }
     }
 
+    public Pair boardToScreen(int j, int i) {
+        return new Pair(j * tileSize + gx + tileSize/2, i * tileSize + gy + tileSize/2);
+    }
+
+    public Pair screenToBoard(int x, int y) {
+        return new Pair((int)((x - gx + tileSize/2.0) / tileSize), (int)((y - gy + tileSize/2.0) / tileSize));
+    }
+
 
 
     public boolean checkValidPlacement(GamePiece gp) {
+        Pair coords = screenToBoard(gp.x, gp.y);
+        return checkValidPlacement(gp.template, gp.rotation, coords.x, coords.y, gp.tile);
+    }
+
+    public boolean checkValidPlacement(Piece p, int rot, int x, int y, GameMode.Tile tile) {
         int greenCount = 0;
         int blueCount = 0;
         for (int i = 0; i < height; i ++) {
             for (int j = 0; j < width; j++) {
-                int setTile = gp.isContained(j * tileSize + gx + tileSize/2, i * tileSize + gy + tileSize/2, tileSize);
+                int setTile = p.isContained(rot, j, i, x, y);
                 if (setTile == 0){
                     blueCount ++;
 
@@ -69,10 +83,10 @@ public class Board {
                     else if (j == width - 1 && i == height - 1) greenCount++;
                 }
                 else if (setTile == 2){
-                    if (grid[i][j] == gp.tile) greenCount++;
+                    if (grid[i][j] == tile) greenCount++;
                 }
             }
         }
-        return greenCount > 0 && gp.template.solids[0].length == blueCount;
+        return greenCount > 0 && p.solids[0].length == blueCount;
     }
 }

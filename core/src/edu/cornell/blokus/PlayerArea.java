@@ -72,6 +72,13 @@ public class PlayerArea {
         }
     }
 
+    public boolean allRemoved(){
+        for (GamePiece gp: gamePieces) {
+            if (gp!=null) return false;
+        }
+        return true;
+    }
+
 
     public void setTexture(Texture tex) {
         texture = tex;

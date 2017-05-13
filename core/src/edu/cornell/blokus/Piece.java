@@ -83,4 +83,29 @@ public class Piece {
         return new Pair(xmin, ymin);
     }
 
+    public int isContained(int rot, int x, int y, int ox, int oy) {
+        int tempx = x - ox;
+        int tempy = y - oy;
+        Pair tile;
+        for (int i = 0; i < solids[rot].length; i++) {
+            tile = solids[rot][i];
+            if (tempx >= tile.x && tempx < tile.x + 1 && tempy >= tile.y && tempy < tile.y + 1) {
+                return 0;
+            }
+        }
+        for (int i = 0; i < edges[rot].length; i++) {
+            tile = edges[rot][i];
+            if (tempx >= tile.x && tempx < tile.x + 1 && tempy >= tile.y && tempy < tile.y + 1) {
+                return 1;
+            }
+        }
+        for (int i = 0; i < corners[rot].length; i++) {
+            tile = corners[rot][i];
+            if (tempx >= tile.x && tempx < tile.x+1 && tempy >= tile.y && tempy < tile.y+1) {
+                return 2;
+            }
+        }
+        return -1;
+    }
+
 }
