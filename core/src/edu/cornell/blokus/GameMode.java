@@ -226,8 +226,12 @@ public class GameMode implements ModeController {
 		if(inputController.keyDown(Input.Keys.A)){
 			Testing.getNextPiece();
 		}
-		if(inputController.keyDown(Input.Keys.S)){
+		if(inputController.keyDown(Input.Keys.Q)){
+			Testing.getPrevPiece();
+		}
+		if(inputController.keyDown(Input.Keys.W)){
 			Testing.possibleMoves = Brain.getAllMoves(p1_area, board.grid);
+			System.out.println(Testing.possibleMoves.size);
 		}
 
 
@@ -250,23 +254,23 @@ public class GameMode implements ModeController {
 		p1_area.draw(canvas);
 		p2_area.draw(canvas);
 
-		for(int i=0; i<GRID_HEIGHT; i++){
-			for(int j=0; j<GRID_WIDTH; j++){
+		for(int i=0; i<GRID_WIDTH; i++){
+			for(int j=0; j<GRID_HEIGHT; j++){
 				switch(board.grid[i][j]){
 					case BLANK:
-						canvas.draw(blankTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+						canvas.draw(blankTile, Color.WHITE,0,0, GRID_X+i*TILE_SIZE, GRID_Y+j*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case BLUE:
-						canvas.draw(blueTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+						canvas.draw(blueTile, Color.WHITE,0,0, GRID_X+i*TILE_SIZE, GRID_Y+j*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case GREEN:
-						canvas.draw(greenTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+						canvas.draw(greenTile, Color.WHITE,0,0, GRID_X+i*TILE_SIZE, GRID_Y+j*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case RED:
-						canvas.draw(redTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+						canvas.draw(redTile, Color.WHITE,0,0, GRID_X+i*TILE_SIZE, GRID_Y+j*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 					case YELLOW:
-						canvas.draw(yellowTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+						canvas.draw(yellowTile, Color.WHITE,0,0, GRID_X+i*TILE_SIZE, GRID_Y+j*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
 				}
 			}
