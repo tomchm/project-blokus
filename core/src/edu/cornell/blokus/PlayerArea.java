@@ -14,10 +14,12 @@ public class PlayerArea {
     public int tileSize;
     public Texture texture;
     public GamePiece[] gamePieces;
+    public GameMode.Tile tile;
 
-    public PlayerArea(int x, int y, int width, int height, int tileSize) {
+    public PlayerArea(int x, int y, int width, int height, int tileSize, GameMode.Tile tile) {
        this.x = x;
        this.y = y;
+       this.tile = tile;
        this.width = width;
        this.height = height;
        this.tileSize = tileSize;
@@ -36,7 +38,7 @@ public class PlayerArea {
 
         for (int i = 0; i < gamePieces.length; i++){
             Piece piece = Pieces.getInstance().plist[i];
-            gamePieces[i] = new GamePiece(tempx + xoffset - (piece.getMin(0).x) * tileSize, tempy + yoffset - (piece.getMin(0).y) * tileSize, 0, piece);
+            gamePieces[i] = new GamePiece(tempx + xoffset - (piece.getMin(0).x) * tileSize, tempy + yoffset - (piece.getMin(0).y) * tileSize, 0, piece, tile);
 
             xoffset = xoffset + piece.getDimensions(0).x  * tileSize + tileSize/4;
             yoffsetmax = Math.max(yoffsetmax, yoffset + piece.getDimensions(0).y * tileSize);
@@ -55,7 +57,7 @@ public class PlayerArea {
 
     public GamePiece getPieceAt(float x1, float y1) {
         for (GamePiece gp: gamePieces) {
-            if (gp != null && gp.isContained(x1, y1, tileSize)) {
+            if (gp != null && gp.isContained(x1, y1, tileSize) == 0) {
                 return gp;
             }
         }
