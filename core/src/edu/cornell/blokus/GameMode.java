@@ -49,11 +49,12 @@ public class GameMode implements ModeController {
 	public static final int GRID_HEIGHT = 20;
 	public static final int GRID_WIDTH = 20;
 	public static final int TILE_SIZE = 23;
-	public static Tile[][] grid;
 	public static final int GRID_X = (W - GRID_WIDTH * TILE_SIZE) / 2, GRID_Y = (H - GRID_HEIGHT * TILE_SIZE)/2;
 
 	public static final int P_XMARGIN = 24;
 	public static final int P_YMARGIN = 24;
+
+	public Board board;
 
 	public PlayerArea p1_area;
 	public PlayerArea p2_area;
@@ -128,7 +129,28 @@ public class GameMode implements ModeController {
 
 
 	}
-	
+
+
+	public Texture getTexture(Tile tile) {
+		if (tile == Tile.BLANK) {
+			return blankTile;
+		}
+		else if (tile == Tile.BLUE) {
+			return blueTile;
+		}
+		else if (tile == Tile.RED) {
+			return redTile;
+		}
+		else if (tile == Tile.GREEN) {
+			return greenTile;
+		}
+		else if (tile == tile.YELLOW) {
+			return yellowTile;
+		}
+		return null;
+	}
+
+
     // Instance variables
 	/** Read input for blue player from keyboard or game pad (CONTROLLER CLASS) */
 	protected InputController inputController;
@@ -145,14 +167,10 @@ public class GameMode implements ModeController {
 	public GameMode(float width, float height) {
 		inputController  = new InputController();
 		Gdx.input.setInputProcessor(inputController);
-		grid = new Tile[GRID_HEIGHT][GRID_WIDTH];
-		for(int i=0; i<GRID_HEIGHT; i++){
-			for(int j=0; j<GRID_WIDTH; j++){
-				grid[i][j] = Tile.BLANK;
-			}
-		}
+		board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
+
 		initializePlayerArea();
-		Testing.init(p2_area, grid);
+		Testing.init(p2_area, board.grid);
 	}
 
 
@@ -168,8 +186,8 @@ public class GameMode implements ModeController {
         for (int i = 0; i < p2_area.gamePieces.length; i++) {
             allGamePieces.add(p2_area.gamePieces[i]);
         }
-
 	}
+
 	/** 
 	 * Read user input, calculate physics, and update the models.
 	 *
@@ -184,15 +202,17 @@ public class GameMode implements ModeController {
 		// Read the keyboard for each controller.
         Pair pos = new Pair(inputController.pos.x , H - inputController.pos.y);
 
+
+        // process player input
 		if (inputController.clicked) {
-            if (inGrid(pos.x, pos.y) && mousePiece != null) {
-                putPieceOnGrid(mousePiece);
+            if (board.inGrid(pos.x, pos.y) && mousePiece != null && board.checkValidPlacement(mousePiece)) {
+                board.putPieceOnGrid(mousePiece);
 				p1_area.removePiece(selected);
 				allGamePieces.removeValue(selected, true);
             }
             selected = p1_area.getPieceAt(pos.x,  pos.y);
             if (selected != null ) {
-                mousePiece = new GamePiece(pos.x, pos.y, 0,selected.template);
+                mousePiece = new GamePiece(pos.x, pos.y, 0,selected.template, selected.tile);
             }
             else {
                 mousePiece = null;
@@ -207,26 +227,14 @@ public class GameMode implements ModeController {
 			Testing.getNextPiece();
 		}
 		if(inputController.keyDown(Input.Keys.S)){
-			Testing.possibleMoves = Brain.getAllMoves(p1_area, grid);
+			Testing.possibleMoves = Brain.getAllMoves(p1_area, board.grid);
 		}
 
+
+        // process ai input
+
+		// both inputs
 	}
-
-	public boolean inGrid(float x, float y) {
-        boolean tempA = x > GRID_X && x < GRID_X + GRID_WIDTH * TILE_SIZE;
-        boolean tempB = y > GRID_Y && y < GRID_Y + GRID_HEIGHT * TILE_SIZE;
-        return tempA  && tempB;
-    }
-
-    public void putPieceOnGrid(GamePiece gp) {
-        for (int i = 0; i < GRID_HEIGHT; i ++) {
-            for (int j = 0; j < GRID_WIDTH; j++) {
-                if (gp.isContained(i * TILE_SIZE + GRID_X + TILE_SIZE/2, j * TILE_SIZE + GRID_Y + TILE_SIZE/2, TILE_SIZE)) {
-                    grid[j][i] = Tile.BLUE;
-                }
-            }
-        }
-    }
 
 	/**
 	 * Draw the game on the provided GameCanvas
@@ -244,7 +252,7 @@ public class GameMode implements ModeController {
 
 		for(int i=0; i<GRID_HEIGHT; i++){
 			for(int j=0; j<GRID_WIDTH; j++){
-				switch(grid[i][j]){
+				switch(board.grid[i][j]){
 					case BLANK:
 						canvas.draw(blankTile, Color.WHITE,0,0, GRID_X+j*TILE_SIZE, GRID_Y+i*TILE_SIZE, 0, TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 						break;
@@ -291,23 +299,23 @@ public class GameMode implements ModeController {
 
 	}
 
-	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean justBlue) {
+	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean highlight) {
 	    if (gp == null) return;
 
 		for(int t=0; t<gp.template.solids[gp.rotation].length; t++){
 			Pair tile = gp.template.solids[gp.rotation][t];
-			canvas.draw(blueTile, Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			canvas.draw(getTexture(gp.tile), Color.WHITE, 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 		}
 
-		if (justBlue) return;
+		if (highlight) return;
 
 		for(int t=0; t<gp.template.corners[gp.rotation].length; t++){
 			Pair tile = gp.template.corners[gp.rotation][t];
-			canvas.draw(greenTile, new Color(1,1,1,0.6f), 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			canvas.draw(getTexture(gp.tile), new Color(1,1,1,0.5f), 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 		}
 		for(int t=0; t<gp.template.edges[gp.rotation].length; t++){
 			Pair tile = gp.template.edges[gp.rotation][t];
-			canvas.draw(redTile, new Color(1,1,1,0.6f), 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
+			canvas.draw(getTexture(gp.tile), new Color(1,1,1,0.2f), 0,0,gp.x+tile.x*TILE_SIZE, gp.y+tile.y*TILE_SIZE,0,TILE_SIZE/32.0f, TILE_SIZE/32.0f);
 		}
 	}
 

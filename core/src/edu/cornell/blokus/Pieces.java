@@ -63,7 +63,6 @@ public class Pieces {
                     ps.get(r).add(s);
                 }
             }
-            System.out.println("YES");
         }
     }
 

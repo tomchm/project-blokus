@@ -43,7 +43,7 @@ public class Brain {
                         int x = ox - pair.x;
                         int y = oy - pair.y;
                         if (validPartial(p, i, x, y, grid, pa.playerColor)) {
-                            possibleMoves.add(new GamePiece(x, y, i, p));
+                            possibleMoves.add(new GamePiece(x, y, i, p, pa.playerColor));
                         }
                     }
                 }
@@ -94,7 +94,7 @@ public class Brain {
                             int x = co.x - pair.x;
                             int y = co.y - pair.y;
                             if(validAll(p, i, x, y, grid, pa.playerColor)){
-                                possibleMoves.add(new GamePiece(x, y, i, p));
+                                possibleMoves.add(new GamePiece(x, y, i, p, pa.playerColor));
                             }
                         }
                     }
