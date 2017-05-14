@@ -77,7 +77,7 @@ public class GameMode implements ModeController {
 	public int[] scores = new int[NUM_AIS];
 
 	public float[][] weights;
-	public static final int NUM_WEIGHTS = 2;
+	public static final int NUM_WEIGHTS = 3;
 	public float var = 0.1f;
 
 	protected Array<GamePiece> allGamePieces = new Array <GamePiece>();
@@ -219,43 +219,62 @@ public class GameMode implements ModeController {
 		Random rnd = new Random();
 		weights = new float[NUM_AIS][NUM_WEIGHTS];
 		for (int i = 0; i < NUM_AIS; i ++){
+			float weightSum = 0;
 			for (int j = 0; j < NUM_WEIGHTS; j++){
 				weights[i][j] = rnd.nextFloat() * 2 - 1;
+				weightSum = weightSum + Math.abs(weights[i][j]);
+			}
+			for (int j = 0; j < NUM_WEIGHTS; j++){
+				weights[i][j] = weights[i][j]/weightSum;
 			}
 		}
 	}
 
 	public void recalculateWeights() {
-		int sumScores = scores[0] + scores[1] + scores[2] + scores[3];
-		float[] scoreWeights = new float[]{scores[0]/sumScores, scores[1]/sumScores, scores[2]/sumScores, scores[3]/sumScores };
+//		int sumScores = scores[0] + scores[1] + scores[2] + scores[3];
+//		float[] scoreWeights = new float[]{scores[0]/sumScores, scores[1]/sumScores, scores[2]/sumScores, scores[3]/sumScores };
+
+		int maxScore = 0;
+		int winner = 0;
+		for (int i = 0; i < scores.length; i++){
+			int score = scores[i];
+			if (score > maxScore){
+				winner = i;
+				maxScore = score;
+			}
+		}
 
 		Random rnd = new Random();
 		float[][] newWeights = new float[NUM_AIS][NUM_WEIGHTS];
-		for (int i = 0; i < NUM_AIS-1; i ++){
+		for (int i = 0; i < NUM_AIS-2; i ++){
 
-			float selectWinner = rnd.nextFloat();
-			int winner;
-			if(selectWinner < scoreWeights[0]) winner = 0;
-			else if(selectWinner < scoreWeights[1]) winner = 1;
-			else if(selectWinner < scoreWeights[2]) winner = 2;
-			else winner = 3;
+//			float selectWinner = rnd.nextFloat();
+//			int winner;
+//			if(selectWinner < scoreWeights[0]) winner = 0;
+//			else if(selectWinner < scoreWeights[1]) winner = 1;
+//			else if(selectWinner < scoreWeights[2]) winner = 2;
+//			else winner = 3;
 
-			float maxW = 0;
+			float weightSum = 0;
 			for (int j = 0; j < NUM_WEIGHTS; j++){
-				float newW = (float)(rnd.nextGaussian() * var + weights[winner][j]);
-				newWeights[i][j] = newW;
-				maxW = Math.max(maxW, Math.abs(newW));
+				newWeights[i][j] = (float)(rnd.nextGaussian() * var + weights[winner][j]);
+				weightSum = weightSum + Math.abs(newWeights[i][j]);
 			}
-			if (maxW > 1){
-				for (int j = 0; j < NUM_WEIGHTS; j++){
-					newWeights[i][j] = newWeights[i][j]/maxW;
-				}
+			for (int j = 0; j < NUM_WEIGHTS; j++){
+				newWeights[i][j] = newWeights[i][j]/weightSum;
 			}
-		}
-		for (int j = 0; j < NUM_WEIGHTS; j++){
-			newWeights[3][j] = rnd.nextFloat();
 		}
 
+		for (int i = 2; i < NUM_AIS; i ++) {
+			float weightSum = 0;
+			for (int j = 0; j < NUM_WEIGHTS; j++) {
+				newWeights[i][j] = rnd.nextFloat() * 2 - 1;
+				weightSum = weightSum + Math.abs(newWeights[i][j]);
+			}
+			for (int j = 0; j < NUM_WEIGHTS; j++) {
+				newWeights[i][j] = newWeights[i][j] / weightSum;
+			}
+		}
 		weights = newWeights;
 	}
 

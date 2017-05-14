@@ -109,4 +109,27 @@ public class Board {
         }
         return greenCount > 0 && p.solids[0].length == blueCount;
     }
+
+    public int[][][] copyStatusGrid(){
+        int[][][] cpy = new int[4][width][height];
+        for(int i = 0; i < height; i++){
+            for(int j = 0; j < width; j++){
+                cpy[0][i][j] = statusGrids[0][i][j];
+                cpy[1][i][j] = statusGrids[1][i][j];
+                cpy[2][i][j] = statusGrids[2][i][j];
+                cpy[3][i][j] = statusGrids[3][i][j];
+            }
+        }
+        return cpy;
+    }
+
+    public GameMode.Tile[][] copyGrid(){
+        GameMode.Tile[][] cpy = new GameMode.Tile[width][height];
+        for(int i = 0; i < height; i++){
+            for(int j = 0; j < width; j++){
+                cpy[i][j] = grid[i][j];
+            }
+        }
+        return cpy;
+    }
 }

@@ -51,7 +51,7 @@ public class AIController {
 
         for(int i = 0; i < moveList.size; i++) {
             gp = moveList.get(i);
-            score = w[0] * getSize(gp) + w[1]*getDistToMiddle(gp);
+            score = w[0] * getSize(gp) + w[1]*getDistToMiddle(gp) + w[2] * getCornerAdd(gp);
             if (score > maxScore) {
                 returnPiece = gp;
                 selected = pa.gamePieces[selectedList.get(i)];
@@ -59,11 +59,15 @@ public class AIController {
             }
         }
 
-        Pair coords = board.boardToScreen(returnPiece.x, returnPiece.y);
-        returnPiece.x = coords.x-1;
-        returnPiece.y = coords.y-1;
+        convertPieceBack(returnPiece);
         clearValidMoves();
         return returnPiece;
+    }
+
+    public void convertPieceBack(GamePiece gp) {
+        Pair coords = board.boardToScreen(gp.x, gp.y);
+        gp.x = coords.x-1;
+        gp.y = coords.y-1;
     }
 
 
@@ -76,6 +80,40 @@ public class AIController {
         float midY = 10;
         return 1 - (float)(Math.sqrt(Math.pow(gp.x - midX, 2) + Math.pow(gp.y - midY, 2))/ Math.sqrt(Math.pow(10, 2) + Math.pow(10, 2)));
     }
+
+    public float getCornerAdd(GamePiece gp) {
+        GamePiece gpTemp = new GamePiece(gp);
+        int[][][] statusGridsTemp = board.copyStatusGrid();
+        GameMode.Tile[][] gridTemp = board.copyGrid();
+
+        int[][] statusGrid = board.statusGrids[board.tileToID(gp.tile)];
+        int cornerCount = 0;
+        for (int i = 0; i < board.height; i ++) {
+            for (int j = 0; j < board.width; j++) {
+                if (statusGrid[i][j] == 2){
+                    cornerCount --;
+                }
+            }
+        }
+
+        convertPieceBack(gpTemp);
+        board.putPieceOnGrid(gpTemp);
+
+        for (int i = 0; i < board.height; i ++) {
+            for (int j = 0; j < board.width; j++) {
+                if (statusGrid[i][j] == 2){
+                    cornerCount ++;
+                }
+            }
+        }
+
+        board.statusGrids = statusGridsTemp;
+        board.grid = gridTemp;
+        return Math.max(0, cornerCount)/8.0f;
+    }
+
+
+
 
 
     public void clearValidMoves() {
