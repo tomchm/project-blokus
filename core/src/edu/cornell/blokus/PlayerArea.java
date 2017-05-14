@@ -15,6 +15,7 @@ public class PlayerArea {
     public Texture texture;
     public GamePiece[] gamePieces;
     public GameMode.Tile tile;
+    public boolean lastOne = false;
 
     public PlayerArea(int x, int y, int width, int height, int tileSize, GameMode.Tile tile) {
        this.x = x;
@@ -70,6 +71,19 @@ public class PlayerArea {
                 gamePieces[i] = null;
             }
         }
+        if (checkIfLastOne()) {
+            lastOne = true;
+        }
+
+    }
+
+    public boolean checkIfLastOne() {
+        for (int i = 1; i < gamePieces.length; i++) {
+            if (gamePieces[i] != null) {
+                return false;
+            }
+        }
+        return gamePieces[0] != null;
     }
 
     public boolean allRemoved(){

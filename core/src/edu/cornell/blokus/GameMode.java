@@ -184,6 +184,18 @@ public class GameMode implements ModeController {
 		initializeAIControllers();
 	}
 
+	public void reset() {
+        board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
+        endCondition = 0;
+        end = false;
+        scores = new int[NUM_AIS+1];
+        allGamePieces.clear();
+
+        initializePlayerArea();
+        initializeAIControllers();
+    }
+
+
 
 	public void initializePlayerArea(){
 		p1_area = new PlayerArea( (W - GRID_WIDTH * TILE_SIZE) / 4, 3*H/4,(W - GRID_WIDTH * TILE_SIZE) / 2 - 2*P_XMARGIN, (H - 2*P_YMARGIN)/2 , TILE_SIZE, Tile.BLUE);
@@ -232,6 +244,10 @@ public class GameMode implements ModeController {
 	public void update() {
 		// Read the keyboard for each controller.
         Pair pos = new Pair(inputController.pos.x , H - inputController.pos.y);
+
+        if (inputController.reset) {
+            reset();
+        }
 
         if (turn % (NUM_AIS + 1) == 0) {
         	if (!canPlace(p1_area) || inputController.giveUp){
@@ -314,10 +330,10 @@ public class GameMode implements ModeController {
 	}
 
 	public void calculateScores() {
-		scores[0] = countTiles(p1_area.tile) + ((p1_area.allRemoved()) ? 15 : 0);
-		scores[1] = countTiles(ai1_area.tile) + ((ai1_area.allRemoved()) ? 15 : 0);
-		scores[2] = countTiles(ai2_area.tile) + ((ai2_area.allRemoved()) ? 15 : 0);
-		scores[3] = countTiles(ai3_area.tile) + ((ai3_area.allRemoved()) ? 15 : 0);
+		scores[0] = countTiles(p1_area.tile) + ((p1_area.allRemoved()) ? 15 : 0) + ((p1_area.lastOne && p1_area.allRemoved()) ? 5 : 0);
+		scores[1] = countTiles(ai1_area.tile) + ((ai1_area.allRemoved()) ? 15 : 0) + ((ai1_area.lastOne && ai1_area.allRemoved()) ? 5 : 0);
+		scores[2] = countTiles(ai2_area.tile) + ((ai2_area.allRemoved()) ? 15 : 0) + ((ai2_area.lastOne && ai2_area.allRemoved()) ? 5 : 0);
+		scores[3] = countTiles(ai3_area.tile) + ((ai3_area.allRemoved()) ? 15 : 0) + ((ai3_area.lastOne && ai3_area.allRemoved()) ? 5 : 0);
 	}
 
 	public int countTiles(Tile tile) {

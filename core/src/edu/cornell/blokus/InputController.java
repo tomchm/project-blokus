@@ -14,6 +14,7 @@ public class InputController implements InputProcessor {
 	public boolean clicked = false;
 	public boolean rotated = false;
 	public boolean giveUp = false;
+	public boolean reset = false;
 	public Pair pos = new Pair(0,0);
 
 	@Override
@@ -25,6 +26,9 @@ public class InputController implements InputProcessor {
 		if (keycode == Keys.S) {
 			giveUp = true;
 		}
+        if (keycode == Keys.R) {
+            reset = true;
+        }
 		return false;
 	}
 
@@ -32,6 +36,7 @@ public class InputController implements InputProcessor {
 	public boolean keyUp(int keycode) {
 		rotated = false;
 		giveUp = false;
+		reset = false;
 		return false;
 	}
 
