@@ -225,9 +225,9 @@ public class GameMode implements ModeController {
 
 	public void initializeAIControllers() {
 		aiControllers = new AIController[3];
-		aiControllers[0] = new AIController(ai1_area, board);
-		aiControllers[1] = new AIController(ai2_area, board);
-		aiControllers[2] = new AIController(ai3_area, board);
+		aiControllers[0] = new AIController(ai1_area, board, new float[]{1,0});
+		aiControllers[1] = new AIController(ai2_area, board, new float[]{0,1});
+		aiControllers[2] = new AIController(ai3_area, board, new float[]{0.5f, 0.5f});
 	}
 
 
@@ -295,7 +295,7 @@ public class GameMode implements ModeController {
 				endCondition ++;
 			}
 			else {
-				GamePiece aiPiece = ai.selectPiece();
+				GamePiece aiPiece = ai.choosePiece();
 				if (aiPiece != null) {
 					board.putPieceOnGrid(aiPiece);
 					ai.pa.removePiece(ai.selected);
@@ -399,9 +399,9 @@ public class GameMode implements ModeController {
 			canvas.drawOverlay(background,true);
 			canvas.drawTextCentered("SCORES", 100);
 			canvas.drawTextCentered("Player: " + String.valueOf(scores[0]), 50);
-			canvas.drawTextCentered("AI1: " + String.valueOf(scores[1]), 0);
-			canvas.drawTextCentered("AI2: " + String.valueOf(scores[2]), -50);
-			canvas.drawTextCentered("AI3: " + String.valueOf(scores[3]), -100);
+			canvas.drawTextCentered("AI1 Greeen: " + String.valueOf(scores[1]), 0);
+			canvas.drawTextCentered("AI2 Red: " + String.valueOf(scores[2]), -50);
+			canvas.drawTextCentered("AI3 Yellow: " + String.valueOf(scores[3]), -100);
 
 		}
 	}
