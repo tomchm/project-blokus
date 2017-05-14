@@ -22,7 +22,7 @@ public class GamePiece {
         this.y = y;
     }
 
-    public  GamePiece(GamePiece gp) {
+    public GamePiece(GamePiece gp) {
         template = gp.template;
         rotation = gp.rotation;
         tile = gp.tile;

@@ -68,7 +68,9 @@ public class Board {
     }
 
     public Pair boardToScreen(int j, int i) {
-        return new Pair(j * tileSize + gx + tileSize/2, i * tileSize + gy + tileSize/2);
+        int x = (j * tileSize + gx + tileSize/2);
+        int y = (i * tileSize + gy + tileSize/2);
+        return new Pair(x-1, y-1);
     }
 
     public Pair screenToBoard(int x, int y) {

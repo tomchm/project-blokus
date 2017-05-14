@@ -59,6 +59,9 @@ public class AIController {
             }
         }
 
+        Pair coords = board.boardToScreen(returnPiece.x, returnPiece.y);
+        returnPiece.x = coords.x-1;
+        returnPiece.y = coords.y-1;
         clearValidMoves();
         return returnPiece;
     }
@@ -69,9 +72,9 @@ public class AIController {
     }
 
     public float getDistToMiddle(GamePiece gp) {
-        float midX = board.gx + board.width * board.tileSize/2.0f;
-        float midY = board.gy + board.height * board.tileSize/2.0f;
-        return 1 - (float)(Math.sqrt(Math.pow(gp.x - midX, 2) + Math.pow(gp.y - midY, 2))/ Math.sqrt(Math.pow(board.gx - midX, 2) + Math.pow(board.gy - midY, 2)));
+        float midX = 10;
+        float midY = 10;
+        return 1 - (float)(Math.sqrt(Math.pow(gp.x - midX, 2) + Math.pow(gp.y - midY, 2))/ Math.sqrt(Math.pow(10, 2) + Math.pow(10, 2)));
     }
 
 
@@ -92,9 +95,8 @@ public class AIController {
                 for (int j: heightIndex) {
                     for (int rot = 0; rot < gp.template.rotations; rot ++){
                         if (board.checkValidPlacement(gp.template, rot, j, i, gp.tile)){
-                            Pair coords = board.boardToScreen(j, i);
                             selectedList.add(index);
-                            moveList.add(new GamePiece(coords.x-1, coords.y-1, rot, gp.template, gp.tile));
+                            moveList.add(new GamePiece(j, i, rot, gp.template, gp.tile));
                         }
                     }
                 }

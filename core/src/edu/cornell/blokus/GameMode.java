@@ -16,6 +16,8 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.utils.Array;
 
+import java.util.Random;
+
 
 /**
  * The primary controller class for the game.
@@ -61,7 +63,8 @@ public class GameMode implements ModeController {
 	public PlayerArea ai3_area;
 
 	public AIController[] aiControllers;
-	public static final int NUM_AIS = 3;
+	public static final int NUM_AIS = 4;
+	public boolean AllAI = true;
 
 	public GamePiece selected = null;
 	public GamePiece mousePiece = null;
@@ -71,7 +74,11 @@ public class GameMode implements ModeController {
 
 	public int endCondition = 0;
 	public boolean end = false;
-	public int[] scores = new int[NUM_AIS+1];
+	public int[] scores = new int[NUM_AIS];
+
+	public float[][] weights;
+	public static final int NUM_WEIGHTS = 2;
+	public float var = 0.1f;
 
 	protected Array<GamePiece> allGamePieces = new Array <GamePiece>();
 
@@ -180,20 +187,78 @@ public class GameMode implements ModeController {
 		Gdx.input.setInputProcessor(inputController);
 		board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
 
+		initializeWeights();
 		initializePlayerArea();
-		initializeAIControllers();
+		if(!AllAI) {
+			initializeAIControllers();
+		}
+		else {
+			initializeAllAIControllers();
+		}
 	}
 
 	public void reset() {
-        board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
+		recalculateWeights();
+
+		board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
         endCondition = 0;
         end = false;
-        scores = new int[NUM_AIS+1];
+        scores = new int[NUM_AIS];
         allGamePieces.clear();
 
         initializePlayerArea();
-        initializeAIControllers();
+        if (!AllAI) {
+			initializeAIControllers();
+		}
+		else {
+			initializeAllAIControllers();
+		}
     }
+
+    public void initializeWeights() {
+		Random rnd = new Random();
+		weights = new float[NUM_AIS][NUM_WEIGHTS];
+		for (int i = 0; i < NUM_AIS; i ++){
+			for (int j = 0; j < NUM_WEIGHTS; j++){
+				weights[i][j] = rnd.nextFloat() * 2 - 1;
+			}
+		}
+	}
+
+	public void recalculateWeights() {
+		int sumScores = scores[0] + scores[1] + scores[2] + scores[3];
+		float[] scoreWeights = new float[]{scores[0]/sumScores, scores[1]/sumScores, scores[2]/sumScores, scores[3]/sumScores };
+
+		Random rnd = new Random();
+		float[][] newWeights = new float[NUM_AIS][NUM_WEIGHTS];
+		for (int i = 0; i < NUM_AIS-1; i ++){
+
+			float selectWinner = rnd.nextFloat();
+			int winner;
+			if(selectWinner < scoreWeights[0]) winner = 0;
+			else if(selectWinner < scoreWeights[1]) winner = 1;
+			else if(selectWinner < scoreWeights[2]) winner = 2;
+			else winner = 3;
+
+			float maxW = 0;
+			for (int j = 0; j < NUM_WEIGHTS; j++){
+				float newW = (float)(rnd.nextGaussian() * var + weights[winner][j]);
+				newWeights[i][j] = newW;
+				maxW = Math.max(maxW, Math.abs(newW));
+			}
+			if (maxW > 1){
+				for (int j = 0; j < NUM_WEIGHTS; j++){
+					newWeights[i][j] = newWeights[i][j]/maxW;
+				}
+			}
+		}
+		for (int j = 0; j < NUM_WEIGHTS; j++){
+			newWeights[3][j] = rnd.nextFloat();
+		}
+
+		weights = newWeights;
+	}
+
 
 
 
@@ -231,6 +296,19 @@ public class GameMode implements ModeController {
 	}
 
 
+	public void initializeAllAIControllers() {
+		aiControllers = new AIController[4];
+		//blue
+		aiControllers[0] = new AIController(p1_area, board, weights[0]);
+		//green
+		aiControllers[1] = new AIController(ai1_area, board, weights[1]);
+		//red
+		aiControllers[2] = new AIController(ai2_area, board, weights[2]);
+		//yellow
+		aiControllers[3] = new AIController(ai3_area, board, weights[3]);
+	}
+
+
 	/** 
 	 * Read user input, calculate physics, and update the models.
 	 *
@@ -249,7 +327,7 @@ public class GameMode implements ModeController {
             reset();
         }
 
-        if (turn % (NUM_AIS + 1) == 0) {
+        if (!AllAI && turn % (NUM_AIS) == 0) {
         	if (!canPlace(p1_area) || inputController.giveUp){
         		turn++;
         		endCondition ++;
@@ -288,7 +366,8 @@ public class GameMode implements ModeController {
 
         // process ai input
 		else {
-			AIController ai = aiControllers[(turn % (NUM_AIS + 1)) - 1 ];
+        	int loopInt = (!AllAI) ? 1 : 0;
+			AIController ai = aiControllers[(turn % (NUM_AIS)) - (loopInt) ];
 
 			if(!canPlace(ai.pa)){
 				turn ++;
@@ -306,7 +385,7 @@ public class GameMode implements ModeController {
 			}
 		}
 
-		if (endCondition == NUM_AIS + 1){
+		if (endCondition == NUM_AIS){
         	calculateScores();
         	end = true;
 		}
@@ -398,13 +477,22 @@ public class GameMode implements ModeController {
         if (end) {
 			canvas.drawOverlay(background,true);
 			canvas.drawTextCentered("SCORES", 100);
-			canvas.drawTextCentered("Player: " + String.valueOf(scores[0]), 50);
-			canvas.drawTextCentered("AI1 Greeen: " + String.valueOf(scores[1]), 0);
-			canvas.drawTextCentered("AI2 Red: " + String.valueOf(scores[2]), -50);
-			canvas.drawTextCentered("AI3 Yellow: " + String.valueOf(scores[3]), -100);
+			canvas.drawTextCentered(((!AllAI) ? "Player: " : "AI0 B  ") + getWeightString(aiControllers[0].w) + " : " + String.valueOf(scores[0]), 50);
+			canvas.drawTextCentered("AI1 G " + getWeightString(aiControllers[1].w) + " : " + String.valueOf(scores[1]), 0);
+			canvas.drawTextCentered("AI2 R " + getWeightString(aiControllers[2].w) + " : " + String.valueOf(scores[2]), -50);
+			canvas.drawTextCentered("AI3 Y " + getWeightString(aiControllers[3].w) + " : " + String.valueOf(scores[3]), -100);
 
 		}
 	}
+
+	public String getWeightString(float[] weights){
+		String wString = "[";
+		for (float w: weights){
+			wString = wString + String.valueOf(w).substring(0, Math.min(5, String.valueOf(w).length())) + ",";
+		}
+		return wString + "]";
+	}
+
 
 	public void drawGamePiece(GameCanvas canvas, GamePiece gp, boolean highlight) {
 	    if (gp == null) return;
