@@ -75,10 +75,11 @@ public class GameMode implements ModeController {
 	public int endCondition = 0;
 	public boolean end = false;
 	public int[] scores = new int[NUM_AIS];
+    public boolean lookAt = false;
 
 	public float[][] weights;
-	public static final int NUM_WEIGHTS = 3;
-	public float var = 0.1f;
+	public static final int NUM_WEIGHTS = 5;
+	public float var = 0.07f;
 
 	protected Array<GamePiece> allGamePieces = new Array <GamePiece>();
 
@@ -205,9 +206,11 @@ public class GameMode implements ModeController {
         end = false;
         scores = new int[NUM_AIS];
         allGamePieces.clear();
+        turn = 0;
 
         initializePlayerArea();
         if (!AllAI) {
+            initializeWeights();
 			initializeAIControllers();
 		}
 		else {
@@ -221,13 +224,17 @@ public class GameMode implements ModeController {
 		for (int i = 0; i < NUM_AIS; i ++){
 			float weightSum = 0;
 			for (int j = 0; j < NUM_WEIGHTS; j++){
-				weights[i][j] = rnd.nextFloat() * 2 - 1;
+				weights[i][j] = rnd.nextFloat();
 				weightSum = weightSum + Math.abs(weights[i][j]);
 			}
 			for (int j = 0; j < NUM_WEIGHTS; j++){
 				weights[i][j] = weights[i][j]/weightSum;
 			}
 		}
+//        weights[0] = new float[]{0.2f, 0.16f, 0.5f, 0.13f};
+//        weights[1] = new float[]{0.05f, 0.316f, 0.04f, 0.593f};
+//        weights[2] = new float[]{0.65f, 0.05f, 0.25f, 0.05f};
+
 	}
 
 	public void recalculateWeights() {
@@ -268,13 +275,14 @@ public class GameMode implements ModeController {
 		for (int i = 2; i < NUM_AIS; i ++) {
 			float weightSum = 0;
 			for (int j = 0; j < NUM_WEIGHTS; j++) {
-				newWeights[i][j] = rnd.nextFloat() * 2 - 1;
+				newWeights[i][j] = rnd.nextFloat();
 				weightSum = weightSum + Math.abs(newWeights[i][j]);
 			}
 			for (int j = 0; j < NUM_WEIGHTS; j++) {
 				newWeights[i][j] = newWeights[i][j] / weightSum;
 			}
 		}
+//		newWeights[3] = new float[]{0.65f, 0.05f, 0.25f, 0.05f};
 		weights = newWeights;
 	}
 
@@ -309,9 +317,9 @@ public class GameMode implements ModeController {
 
 	public void initializeAIControllers() {
 		aiControllers = new AIController[3];
-		aiControllers[0] = new AIController(ai1_area, board, new float[]{1,0});
-		aiControllers[1] = new AIController(ai2_area, board, new float[]{0,1});
-		aiControllers[2] = new AIController(ai3_area, board, new float[]{0.5f, 0.5f});
+		aiControllers[0] = new AIController(ai1_area, board, weights[0]);
+		aiControllers[1] = new AIController(ai2_area, board, weights[1]);
+		aiControllers[2] = new AIController(ai3_area, board, weights[2]);
 	}
 
 
@@ -345,6 +353,7 @@ public class GameMode implements ModeController {
         if (inputController.reset) {
             reset();
         }
+        lookAt = inputController.lookAt;
 
         if (!AllAI && turn % (NUM_AIS) == 0) {
         	if (!canPlace(p1_area) || inputController.giveUp){
@@ -493,13 +502,13 @@ public class GameMode implements ModeController {
             drawGamePiece(canvas, mousePiece, false);
         }
 
-        if (end) {
+        if (end && !lookAt) {
 			canvas.drawOverlay(background,true);
 			canvas.drawTextCentered("SCORES", 100);
-			canvas.drawTextCentered(((!AllAI) ? "Player: " : "AI0 B  ") + getWeightString(aiControllers[0].w) + " : " + String.valueOf(scores[0]), 50);
-			canvas.drawTextCentered("AI1 G " + getWeightString(aiControllers[1].w) + " : " + String.valueOf(scores[1]), 0);
-			canvas.drawTextCentered("AI2 R " + getWeightString(aiControllers[2].w) + " : " + String.valueOf(scores[2]), -50);
-			canvas.drawTextCentered("AI3 Y " + getWeightString(aiControllers[3].w) + " : " + String.valueOf(scores[3]), -100);
+			canvas.drawTextCentered(((!AllAI) ? "Player: " : "AI0 B  " + getWeightString(aiControllers[0].w))  + " : " + String.valueOf(scores[0]), 50);
+			canvas.drawTextCentered("AI1 G " + getWeightString(aiControllers[1 - ((!AllAI) ? 1 : 0)].w) + " : " + String.valueOf(scores[1]), 0);
+			canvas.drawTextCentered("AI2 R " + getWeightString(aiControllers[2 - ((!AllAI) ? 1 : 0)].w) + " : " + String.valueOf(scores[2]), -50);
+			canvas.drawTextCentered("AI3 Y " + getWeightString(aiControllers[3 - ((!AllAI) ? 1 : 0)].w) + " : " + String.valueOf(scores[3]), -100);
 
 		}
 	}

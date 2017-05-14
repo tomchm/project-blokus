@@ -93,6 +93,16 @@ public class PlayerArea {
         return true;
     }
 
+    public GamePiece getSelectedPiece(GamePiece gp){
+        for (int i = 0; i < gamePieces.length; i++) {
+
+            if (gamePieces[i] != null && gamePieces[i].template == gp.template) {
+                return gamePieces[i];
+            }
+        }
+        return null;
+    }
+
 
     public void setTexture(Texture tex) {
         texture = tex;

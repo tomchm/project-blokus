@@ -83,6 +83,19 @@ public class Piece {
         return new Pair(xmin, ymin);
     }
 
+    public float getRadius(){
+        float max = 0;
+        for(int i = 0; i < rotations; i++){
+            for (int j = 0; j < solids[i].length; j++){
+                float dist = (float)(Math.sqrt(Math.pow(solids[i][j].x, 2) + Math.pow(solids[i][j].y, 2)));
+                if(dist > max){
+                    max = dist;
+                }
+            }
+        }
+        return max + 1;
+    }
+
     public int isContained(int rot, int x, int y, int ox, int oy) {
         int tempx = x - ox;
         int tempy = y - oy;

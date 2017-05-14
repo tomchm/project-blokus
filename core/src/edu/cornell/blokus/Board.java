@@ -88,8 +88,11 @@ public class Board {
         int greenCount = 0;
         int blueCount = 0;
         int[][] statusGrid = statusGrids[tileToID(tile)];
-        for (int i = 0; i < height; i ++) {
-            for (int j = 0; j < width; j++) {
+
+        Pair dim = p.getDimensions(rot);
+
+        for (int i = Math.max(y-dim.y - 1,0); i < Math.min(y+dim.y + 1,height); i ++) {
+            for (int j = Math.max(x-dim.x - 1,0); j < Math.min(x+dim.x + 1,width); j++) {
                 int setTile = p.isContained(rot, j, i, x, y);
                 if (setTile == 0){
                     blueCount ++;
@@ -132,4 +135,20 @@ public class Board {
         }
         return cpy;
     }
+
+
+    public boolean inRange(int id, float dist, int x, int y){
+        int[][] statusGrid = statusGrids[id];
+        for(int i = 0; i < height; i++){
+            for(int j = 0; j < width; j++){
+                if(statusGrid[i][j] == 2){
+                    if((float)(Math.sqrt(Math.pow(x-j, 2) + Math.pow(y - i, 2))) < dist) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 }
