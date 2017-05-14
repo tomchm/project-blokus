@@ -83,7 +83,7 @@ public class AIController {
     public float getDistToMiddle(GamePiece gp) {
         float midX = 10;
         float midY = 10;
-        return 1 - (float)(Math.sqrt(Math.pow(gp.x - midX, 2) + Math.pow(gp.y - midY, 2))/ Math.sqrt(Math.pow(10, 2) + Math.pow(10, 2)));
+        return (1 - (float)(Math.sqrt(Math.pow(gp.x - midX, 2) + Math.pow(gp.y - midY, 2))/ Math.sqrt(Math.pow(10, 2) + Math.pow(10, 2))));
     }
 
     public float getCornerAdd(GamePiece gp) {
@@ -100,7 +100,8 @@ public class AIController {
 
         board.statusGrids = statusGridsTemp;
         board.grid = gridTemp;
-        return Math.max(cornerCount,0)/8.0f;
+//        System.out.println(Math.max(cornerCount,0)/6.0f);
+        return Math.max(cornerCount,0)/6.0f;
     }
 
     public float getCornerBlock(GamePiece gp) {
@@ -172,15 +173,9 @@ public class AIController {
 
         board.statusGrids = statusGridsTemp;
         board.grid = gridTemp;
-        System.out.println(numMoves2/(float)numMoves1 * 0.5f);
+//        System.out.println(numMoves2/(float)numMoves1 * 0.5f);
         return numMoves2/(float)numMoves1 * 0.5f;
     }
-
-
-
-
-
-
 
 
     public void clearValidMoves() {

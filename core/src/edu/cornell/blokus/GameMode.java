@@ -64,7 +64,7 @@ public class GameMode implements ModeController {
 
 	public AIController[] aiControllers;
 	public static final int NUM_AIS = 4;
-	public boolean AllAI = true;
+	public boolean AllAI = false;
 
 	public GamePiece selected = null;
 	public GamePiece mousePiece = null;
@@ -200,6 +200,7 @@ public class GameMode implements ModeController {
 
 	public void reset() {
 		recalculateWeights();
+//        initializeWeights();
 
 		board = new Board(GRID_X, GRID_Y,GRID_WIDTH, GRID_HEIGHT,TILE_SIZE);
         endCondition = 0;
@@ -231,9 +232,10 @@ public class GameMode implements ModeController {
 				weights[i][j] = weights[i][j]/weightSum;
 			}
 		}
-//        weights[0] = new float[]{0.2f, 0.16f, 0.5f, 0.13f};
-//        weights[1] = new float[]{0.05f, 0.316f, 0.04f, 0.593f};
-//        weights[2] = new float[]{0.65f, 0.05f, 0.25f, 0.05f};
+        weights[0] = new float[]{0.274f, 0.04f, 0, 0.16f, 0.452f};
+        weights[1] = new float[]{0.213f, 0, 0.175f, 0.225f, 0.222f};
+        weights[2] = new float[]{0.224f, 0.058f, 0.420f, 0.137f, 0.138f};
+//        weights[3] = new float[]{0, 0, 0, 1, 0};
 
 	}
 
@@ -282,7 +284,17 @@ public class GameMode implements ModeController {
 				newWeights[i][j] = newWeights[i][j] / weightSum;
 			}
 		}
-//		newWeights[3] = new float[]{0.65f, 0.05f, 0.25f, 0.05f};
+
+		//keep winner
+        float weightSum = 0;
+        for (int j = 0; j < NUM_WEIGHTS; j++) {
+            newWeights[0][j] = weights[winner][j];
+            weightSum = weightSum + Math.abs(newWeights[0][j]);
+        }
+        for (int j = 0; j < NUM_WEIGHTS; j++) {
+            newWeights[0][j] = newWeights[0][j] / weightSum;
+        }
+
 		weights = newWeights;
 	}
 
